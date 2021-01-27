@@ -55,16 +55,10 @@ client.on("message", async message => {
 	  }
       const newChannel = new Discord.MessageEmbed()
         .setColor("BLUE").setAuthor(author.tag, author.avatarURL())
-        .setDescription(`Ticket #${actualticket} a bien été créé.\nUtilisateur: ${author}\nIdentifiants: ${author.id}`)
+        .setDescription(`Ticket #${actualticket} created.\nUser: ${author}\nID: ${author.id}`)
         .setTimestamp()
       await client.channels.cache.get(channel.id).send({embed:newChannel});
-
-      const createemb = new Discord.MessageEmbed()
-      .setColor("BLUE").setAuthor(author.tag, author.avatarURL())
-      .setDescription(`Salut ${author.username}, le ticket #${actualticket} a bien été créé, quel est ton problème ?.`)
-      .setTimestamp()
-
-      message.author.send(createemb)
+      message.author.send(`Hello ${author.username}, your ticket #${actualticket} has been created.`)
       active.channelID = channel.id;
       active.targetID = author.id;
     }
@@ -75,7 +69,7 @@ client.on("message", async message => {
     var isPaused = await table.get(`suspended${message.author.id}`);
     var isBlocked = await table.get(`isBlocked${message.author.id}`);
     if(isPaused === true){
-    	return message.channel.send("Désolé, mais votre billet est actuellement en pause. Je vous enverrai un message lorsque l'équipe de soutien le remettra en route.")
+    	return message.channel.send("Sorry, but your ticket is currently paused. I'll message you back when the support team unpause it.")
     }
     if(isBlocked === true) return; // the user is blocked, so we're just gonna move on.
     if(message.attachments.size > 0){
@@ -100,16 +94,16 @@ client.on("message", async message => {
     if(message.content.startsWith(`${config.prefix}reply`)){
       var isPause = await table.get(`suspended${support.targetID}`);
       let isBlock = await table.get(`isBlocked${support.targetID}`);
-      if(isPause === true) return message.channel.send("Ce billet est actuellement en pause. Désactivez la pause pour continuer.")
-      if(isBlock === true) return message.channel.send("Le ticket est bloqué. Débloquez-le pour continuer ou fermez le billet.")
+      if(isPause === true) return message.channel.send("This ticket already paused. Unpause it to continue.")
+      if(isBlock === true) return message.channel.send("The user is blocked. Unblock them to continue or close the ticket.")
       var args = message.content.split(" ").slice(1)
       let msg = args.join(" ");
       message.react("✅");
       if(message.attachments.size > 0){
         let attachment = new Discord.MessageAttachment(message.attachments.first().url)
-        return supportUser.send(support1SDnvers, {files: [message.attachments.first().url]})
+        return supportUser.send(`${message.author.username} > ${msg}`, {files: [message.attachments.first().url]})
       } else {
-        return supportUser.send(support1SDnvers);
+        return supportUser.send(`${message.author.username} > ${msg}`);
       }
     };
     
@@ -117,45 +111,30 @@ client.on("message", async message => {
     if(message.content.startsWith(`${config.prefix}areply`)){
       var isPause = await table.get(`suspended${support.targetID}`);
       let isBlock = await table.get(`isBlocked${support.targetID}`);
-      if(isPause === true) return message.channel.send("Ce billet est actuellement en pause. Désactivez la pause pour continuer.")
-      if(isBlock === true) return message.channel.send("Le ticket est bloqué. Débloquez-le pour continuer ou fermez le billet.")
+      if(isPause === true) return message.channel.send("This ticket already paused. Unpause it to continue.")
+      if(isBlock === true) return message.channel.send("The user is blocked. Unblock them to continue or close the ticket.")
       var args = message.content.split(" ").slice(1)
       let msg = args.join(" ");
       message.react("✅");
-      return supportUser.send(support1sd);
+      return supportUser.send(`Support Team > ${msg}`);
     };
-
-    const support1sd = new Discord.MessageEmbed()
-      .setColor("BLUE").setAuthor(author.tag, author.avatarURL())
-      .setDescription(`Support : ${msg}`)
-      .setTimestamp()
-
-    const support1SDnvers = new Discord.MessageEmbed()
-      .setColor("BLUE").setAuthor(author.tag, author.avatarURL())
-      .setDescription(`${message.author.username} : ${msg}`)
-      .setTimestamp()
     
     // print user ID
     if(message.content === `${config.prefix}id`){
-      return message.channel.send(idutilisateur);
+      return message.channel.send(`User's ID is **${support.targetID}**.`);
     };
-
-    const idutilisateur = new Discord.MessageEmbed()
-      .setColor("BLUE").setAuthor(author.tag, author.avatarURL())
-      .setDescription(`ID de l'utilisateur : **${support.targetID}**.`)
-      .setTimestamp()
     
     // suspend a thread
     if(message.content === `${config.prefix}pause`){
       var isPause = await table.get(`suspended${support.targetID}`);
-      if(isPause === true || isPause === "true") return message.channel.send("Le ticket est actuellement en pause, désactiver la pause pour continuer !")
+      if(isPause === true || isPause === "true") return message.channel.send("This ticket already paused. Unpause it to continue.")
       await table.set(`suspended${support.targetID}`, true);
       var suspend = new Discord.MessageEmbed()
-      .setDescription(`⏸️ Ce fil de discussion a été **bloqué** et **suspendu**.\`${config.prefix}continue\` pour annuler.`)
+      .setDescription(`⏸️ This thread has been **locked** and **suspended**. Do \`${config.prefix}continue\` to cancel.`)
       .setTimestamp()
       .setColor("YELLOW")
       message.channel.send({embed: suspend});
-      return supportUser.send("Votre billet a été mis en pause. Nous vous enverrons un message lorsque nous serons prêts à continuer.")
+      return supportUser.send("Your ticket has been paused. We'll send you a message when we're ready to continue.")
     };
     
     // continue a thread
@@ -188,7 +167,7 @@ client.on("message", async message => {
       if(isBlock === true) return message.channel.send("The user is already blocked.")
       await table.set(`isBlocked${support.targetID}`, true);
       var c = new Discord.MessageEmbed()
-      .setDescription("⏸️ L'utilisateur ne peut plus utiliser le modmail ; il a été bloqué. Vous pouvez maintenant fermer le ticket ou les débloquer pour continuer.")
+      .setDescription("⏸️ The user can not use the modmail anymore; they have been blocked. You may now close the ticket or unblock them to continue.")
       .setColor("RED").setTimestamp()
       message.channel.send({embed: c});
       return;
