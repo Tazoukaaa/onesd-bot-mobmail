@@ -8,6 +8,16 @@ const client = new Discord.Client();
 // do something when the bot is logged in
 client.on("ready", () => {
   console.log(`Successfully logged in as ${client.user.tag}.`)
+
+  let statuses = [
+      "1SD - Mobmail",
+      "MP me for help."
+  ]
+
+  setInterval(function() {
+      let status = statuses[Math.floor(Math.random() * statuses.length)];
+      bot.user.setActivity(status, {type: "WATCHING"})
+  }, 5000)
 })
 
 client.on("message", async message => {
